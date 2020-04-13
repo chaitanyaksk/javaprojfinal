@@ -1,0 +1,7 @@
+[
+    {
+        "name": "helloworld-container-CMS",
+        "imageUri": "749088078640.dkr.ecr.us-west-2.amazonaws.com/cms-devops-ecrrepo:latest"
+        "imageUri": "https://codedeploy-install.s3.amazonaws.com/Capture.JPG"
+    }
+]

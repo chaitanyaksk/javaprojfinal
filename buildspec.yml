@@ -1,0 +1,47 @@
+version: 0.2
+artifacts: 
+  files: 
+    - appspec.yaml
+    - imageDetail.json
+    - taskdef.json
+phases: 
+  build: 
+    commands: 
+      - "echo Build started on `date`"
+      - "echo Maven Build..."
+      - "mvn install"
+      - "echo $REPOSITORY_URI"
+      - "echo Building the Docker image..."
+      - "docker build -t $REPOSITORY_URI:latest ."
+      - "docker tag $REPOSITORY_URI:latest $REPOSITORY_URI:$IMAGE_TAG"
+  install: 
+    commands: 
+      - "apt-get update -y"
+      - "apt-get install -y software-properties-common"
+      - "add-apt-repository ppa:openjdk-r/ppa"
+      - "apt-get update -y"
+      - "apt-get install -y openjdk-8-jdk"
+      - "apt-get install -y maven"
+    runtime-versions: 
+      java: openjdk8
+  post_build: 
+    commands: 
+      - "echo Build completed on `date`"
+      - "echo Pushing the Docker images..."
+      - "docker push $REPOSITORY_URI:latest"
+      - "docker push $REPOSITORY_URI:$IMAGE_TAG"
+      - "echo Writing image definitions file..."
+      - "printf '{\"ImageURI\":\"%s\"}' $REPOSITORY_URI:$IMAGE_TAG > imageDetail.json"
+      - "cat imageDetail.json"
+  pre_build: 
+    commands: 
+      - "echo Logging in to Amazom ECR..."
+      - "aws --version"
+      - "echo $AWS_DEFAULT_REGION"
+      - "$(aws ecr get-login --no-include-email --region $AWS_DEFAULT_REGION)"
+      - "echo Amazon ECR login successfull..."
+      - REPOSITORY_URI=043114856429.dkr.ecr.eu-west-1.amazonaws.com/demo
+     # - REPOSITORY_URI=043114856429.dkr.ecr.eu-central-1.amazonaws.com/cms-demo
+      - "COMMIT_HASH=$(echo $CODEBUILD_RESOLVED_SOURCE_VERSION | cut -c 1-7)"
+     # - "IMAGE_TAG=${COMMIT_HASH:=latest}"
+      - "IMAGE_TAG=latest"
